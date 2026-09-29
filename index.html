@@ -24,8 +24,11 @@
     border-image: linear-gradient(90deg, #27AE72, #34D399, #7C3AED, #27AE72) 1;
     flex-shrink: 0;
     position: relative;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
   }
+  .tab-bar::-webkit-scrollbar { display: none; }
   .tab-bar::before {
     content: '';
     position: absolute;
@@ -149,6 +152,12 @@
     </button>
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="nwea">
       <span class="emoji">📊</span><span>NWEA MAP</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="morningwork">
+      <span class="emoji">🌅</span><span>Morning Work</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="leaderboard">
+      <span class="emoji">🏆</span><span>Leaderboard</span>
     </button>
   </nav>
 
@@ -529,6 +538,13 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 @media(max-width:600px){.fc-deck-grid{grid-template-columns:1fr}.fc-term-word{font-size:1.5rem}.fc-term-emoji{font-size:2.8rem}.fc-def-visual{font-size:2rem}.fc-def-text{font-size:.92rem}.fc-def-title{font-size:1.1rem}.fc-face{padding:1.5rem 1rem}.fc-card{min-height:340px}.fc-nav-btn{padding:.75rem .6rem;font-size:.85rem}.fc-deck-color{width:55px}.fc-deck-num{font-size:1.5rem}}
 
 /* ===== MORNING WORK ===== */
+.mw-toptabs{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin:0 0 1.2rem;padding-top:.2rem}
+.mw-toptab{background:var(--wh);border:1.5px solid var(--bo);border-radius:99px;padding:.6rem 1.2rem;font-size:.85rem;font-weight:700;color:var(--mu);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+.mw-toptab:hover{border-color:var(--ga);color:var(--gd)}
+.mw-toptab.active{background:linear-gradient(135deg,var(--gd),var(--gm));color:#fff;border-color:var(--gd)}
+.mw-class-picker{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:1rem}
+.mw-class-pick-btn{background:var(--wh);border:1.5px solid var(--bo);border-radius:10px;padding:.5rem .9rem;font-weight:700;font-size:.85rem;cursor:pointer;color:var(--gd)}
+.mw-class-pick-btn:hover{border-color:var(--ga);background:var(--gp)}
 .mw-card{background:var(--wh);border:1.5px solid var(--bo);border-radius:16px;padding:1.5rem;margin-bottom:1rem}
 .mw-class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.7rem;margin-top:1rem}
 .mw-class-btn{background:var(--wh);border:2px solid var(--bo);border-radius:14px;padding:1.1rem .5rem;text-align:center;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:800;font-size:1.3rem;color:var(--gd);transition:all .2s}
@@ -589,6 +605,11 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 &lt;div class=&quot;acc&quot;&gt;&lt;/div&gt;
 &lt;main&gt;
 &lt;div id=&quot;s0&quot; class=&quot;sc active&quot;&gt;
+&lt;div class=&quot;mw-toptabs&quot;&gt;
+&lt;button class=&quot;mw-toptab active&quot; onclick=&quot;show('s0')&quot;&gt;🎯 Grade Practice&lt;/button&gt;
+&lt;button class=&quot;mw-toptab&quot; onclick=&quot;mwOpen()&quot;&gt;🌅 Morning Work&lt;/button&gt;
+&lt;button class=&quot;mw-toptab&quot; onclick=&quot;mwOpenLeaderboardDirect()&quot;&gt;🏆 Leaderboards&lt;/button&gt;
+&lt;/div&gt;
 &lt;div class=&quot;hero-wrap&quot;&gt;
 &lt;div class=&quot;hero-floats&quot;&gt;
 &lt;span class=&quot;hf&quot;&gt;📖&lt;/span&gt;&lt;span class=&quot;hf&quot;&gt;🔢&lt;/span&gt;&lt;span class=&quot;hf&quot;&gt;🔬&lt;/span&gt;
@@ -608,9 +629,6 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 &lt;div class=&quot;gg&quot; id=&quot;ggg&quot;&gt;&lt;/div&gt;
 &lt;div style=&quot;text-align:center;margin-top:2rem;padding:1.1rem 1.5rem;background:var(--wh);border:1.5px solid var(--bo);border-radius:14px;font-size:.82rem;color:var(--mu);line-height:1.6&quot;&gt;
 📬 For full access early in the year, please email &lt;a href=&quot;mailto:regassaabas@gmail.com&quot; style=&quot;color:var(--gm);font-weight:600;text-decoration:none&quot;&gt;regassaabas@gmail.com&lt;/a&gt;. This tool will remain free to use until the end of April.
-&lt;/div&gt;
-&lt;div style=&quot;text-align:center;margin-top:1rem&quot;&gt;
-&lt;button class=&quot;mw-friday&quot; style=&quot;background:linear-gradient(135deg,#7C3AED,#27AE72);max-width:420px;margin:1rem auto 0;display:block&quot; onclick=&quot;mwOpen()&quot;&gt;🌅 Morning Work Challenge&lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id=&quot;s1&quot; class=&quot;sc&quot;&gt;
@@ -719,6 +737,11 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id=&quot;s5&quot; class=&quot;sc&quot;&gt;
+&lt;div class=&quot;mw-toptabs&quot;&gt;
+&lt;button class=&quot;mw-toptab&quot; onclick=&quot;show('s0')&quot;&gt;🎯 Grade Practice&lt;/button&gt;
+&lt;button class=&quot;mw-toptab active&quot; onclick=&quot;mwOpen()&quot;&gt;🌅 Morning Work&lt;/button&gt;
+&lt;button class=&quot;mw-toptab&quot; onclick=&quot;mwOpenLeaderboardDirect()&quot;&gt;🏆 Leaderboards&lt;/button&gt;
+&lt;/div&gt;
 &lt;div class=&quot;hero&quot; style=&quot;padding:1.5rem 0 .5rem&quot;&gt;
 &lt;div class=&quot;hero-badge&quot;&gt;&lt;span class=&quot;pulse&quot;&gt;&lt;/span&gt; Class vs. Class&lt;/div&gt;
 &lt;h2&gt;🌅 Morning Work&lt;/h2&gt;
@@ -1296,12 +1319,12 @@ document.addEventListener(&quot;keydown&quot;,function(e){
 
 /* ====================== MORNING WORK ====================== */
 var MW_FIREBASE_CONFIG = {
-  apiKey: &quot;REPLACE_ME&quot;,
-  authDomain: &quot;REPLACE_ME.firebaseapp.com&quot;,
-  projectId: &quot;REPLACE_ME&quot;,
-  storageBucket: &quot;REPLACE_ME.appspot.com&quot;,
-  messagingSenderId: &quot;REPLACE_ME&quot;,
-  appId: &quot;REPLACE_ME&quot;
+  apiKey: &quot;AIzaSyBdp8YgPSOdfgso31xp7b6Hdv29NcmPhNw&quot;,
+  authDomain: &quot;bultum-morning-work.firebaseapp.com&quot;,
+  projectId: &quot;bultum-morning-work&quot;,
+  storageBucket: &quot;bultum-morning-work.firebasestorage.app&quot;,
+  messagingSenderId: &quot;960698723011&quot;,
+  appId: &quot;1:960698723011:web:87699499ea8740887a1076&quot;
 };
 var mwDb = null;
 try{
@@ -1357,9 +1380,9 @@ var MW_VOCAB = {
   ]
 };
 
-var mw = { screen:&quot;classSelect&quot;, cls:null, grade:null, name:&quot;&quot;, phase:null, qi:0, score:0,
+var mw = { screen:&quot;classSelect&quot;, cls:null, grade:null, name:&quot;&quot;, phase:null, qi:0, score:0, correctCount:0,
   breakdown:{reading:0,math:0,facts:0,vocab:0}, readingQs:[], mathQs:[], factQs:[], vocabQs:[],
-  timer:null, timeLeft:0, lbTab:&quot;class&quot; };
+  timer:null, timeLeft:0, lbTab:&quot;cross&quot; };
 
 function mwGradeOf(cls){ return &quot;Grade &quot; + cls.replace(/[AB]$/,''); }
 function mwTier(cls){ var g=parseInt(cls,10); if(g&lt;=4) return &quot;lower&quot;; if(g&lt;=6) return &quot;mid&quot;; return &quot;upper&quot;; }
@@ -1409,6 +1432,7 @@ function mwGenFridayFacts(){
 }
 
 function mwOpen(){ mw.screen=&quot;classSelect&quot;; show(&quot;s5&quot;); mwRender(); }
+function mwOpenLeaderboardDirect(){ mw.screen=&quot;leaderboard&quot;; if(!mw.lbTab||mw.lbTab===&quot;none&quot;)mw.lbTab=&quot;cross&quot;; show(&quot;s5&quot;); mwRender(); mwLoadLeaderboard(); }
 function mwStopTimer(){ if(mw.timer){ clearInterval(mw.timer); mw.timer=null; } }
 
 function mwRender(){
@@ -1453,6 +1477,7 @@ function mwRenderMenu(root){
   html += '&lt;div class=&quot;mw-menu-tile&quot; onclick=&quot;mwStartSession()&quot;&gt;&lt;h4&gt;📝 Start Morning Work&lt;/h4&gt;&lt;p&gt;2 reading + 3 math questions, rapid math facts, and a quick vocab/grammar round.&lt;/p&gt;&lt;/div&gt;';
   html += '&lt;div class=&quot;mw-menu-tile&quot; onclick=&quot;mw.lbTab=\'class\';mw.screen=\'leaderboard\';mwRender();mwLoadLeaderboard()&quot;&gt;&lt;h4&gt;🏆 Class Leaderboard&lt;/h4&gt;&lt;p&gt;See today\'s top scorers in Class '+mw.cls+'.&lt;/p&gt;&lt;/div&gt;';
   html += '&lt;div class=&quot;mw-menu-tile&quot; onclick=&quot;mw.lbTab=\'cross\';mw.screen=\'leaderboard\';mwRender();mwLoadLeaderboard()&quot;&gt;&lt;h4&gt;🌟 Class Champions&lt;/h4&gt;&lt;p&gt;Each class\'s top scorer, competing across all grades.&lt;/p&gt;&lt;/div&gt;';
+  html += '&lt;div class=&quot;mw-menu-tile&quot; onclick=&quot;mw.lbTab=\'totals\';mw.screen=\'leaderboard\';mwRender();mwLoadLeaderboard()&quot;&gt;&lt;h4&gt;📈 Class Totals&lt;/h4&gt;&lt;p&gt;Total correct answers each class has racked up, all-time.&lt;/p&gt;&lt;/div&gt;';
   if(mwIsFriday()){
     html += '&lt;div class=&quot;mw-menu-tile&quot; style=&quot;border-color:#F59E0B;background:#FFFBEB&quot; onclick=&quot;mwStartFriday()&quot;&gt;&lt;h4&gt;🏁 Friday Math Facts Challenge&lt;/h4&gt;&lt;p&gt;15 rapid multiplication facts. Today\'s winner is the Champion of the Week!&lt;/p&gt;&lt;/div&gt;';
   }
@@ -1468,7 +1493,7 @@ function mwStartSession(){
   mw.mathQs = mwSample(mwGetMathPool(mw.grade),3);
   mw.factQs = mwGenFacts(mw.cls,10);
   mw.vocabQs = mwSample(MW_VOCAB[mwTier(mw.cls)],5);
-  mw.score=0; mw.breakdown={reading:0,math:0,facts:0,vocab:0};
+  mw.score=0; mw.correctCount=0; mw.breakdown={reading:0,math:0,facts:0,vocab:0};
   mw.phase = mw.readingQs.length ? &quot;reading&quot; : &quot;math&quot;;
   mw.qi=0; mw.screen=&quot;session&quot;; mwRender();
 }
@@ -1535,6 +1560,7 @@ function mwAnswerMC(picked, correct){
   if(ok){
     mw.score += (mw.phase===&quot;vocab&quot;?5:10);
     mw.breakdown[mw.phase] = (mw.breakdown[mw.phase]||0) + (mw.phase===&quot;vocab&quot;?5:10);
+    mw.correctCount++;
   }
   setTimeout(mwNextInPhase, 650);
 }
@@ -1561,8 +1587,9 @@ function mwAnswerFact(timedOut){
   var q = list[mw.qi];
   var ok = !timedOut &amp;&amp; val===q.answer;
   if(ok){
-    var pts = mw.phase===&quot;fridayFacts&quot; ? 5 : 5;
+    var pts = 5;
     mw.score += pts;
+    mw.correctCount++;
     if(mw.phase===&quot;facts&quot;) mw.breakdown.facts = (mw.breakdown.facts||0)+pts;
   }
   if(el){ el.disabled=true; el.style.borderColor = ok?&quot;#22C55E&quot;:&quot;#DC2626&quot;; }
@@ -1585,14 +1612,14 @@ function mwStartCountdown(seconds, onDone){
 function mwFinishSession(){
   mwSaveScore({
     name: mw.name, cls: mw.cls, grade: mw.grade, date: mwToday(), weekOf: mwMonday(),
-    score: mw.score, maxScore: 125, breakdown: mw.breakdown, type: &quot;daily&quot;
+    score: mw.score, maxScore: 125, correct: mw.correctCount, maxCorrect: 20, breakdown: mw.breakdown, type: &quot;daily&quot;
   });
   mw.screen=&quot;results&quot;; mwRender();
 }
 function mwFinishFriday(){
   mwSaveScore({
     name: mw.name, cls: mw.cls, grade: mw.grade, date: mwToday(), weekOf: mwMonday(),
-    score: mw.score, maxScore: 75, breakdown: {friday: mw.score}, type: &quot;friday&quot;
+    score: mw.score, maxScore: 75, correct: mw.correctCount, maxCorrect: 15, breakdown: {friday: mw.score}, type: &quot;friday&quot;
   });
   mw.screen=&quot;results&quot;; mwRender();
 }
@@ -1624,18 +1651,28 @@ function mwRenderResults(root){
 
 function mwStartFriday(){
   mw.factQs = mwGenFridayFacts();
-  mw.score=0; mw.breakdown={friday:0};
+  mw.score=0; mw.correctCount=0; mw.breakdown={friday:0};
   mw.phase=&quot;fridayFacts&quot;; mw.qi=0; mw.screen=&quot;session&quot;; mwRender();
 }
 
 /* ---- Leaderboards ---- */
 function mwRenderLeaderboard(root){
   var html = '&lt;div class=&quot;mw-lb-tabs&quot;&gt;';
-  [[&quot;class&quot;,&quot;🏫 Class &quot;+(mw.cls||&quot;&quot;)],[&quot;cross&quot;,&quot;🌟 Champions&quot;],[&quot;weekly&quot;,&quot;📅 Weekly&quot;]].forEach(function(t){
+  [[&quot;cross&quot;,&quot;🌟 Champions&quot;],[&quot;class&quot;,&quot;🏫 Class&quot;+(mw.cls?&quot; &quot;+mw.cls:&quot;&quot;)],[&quot;totals&quot;,&quot;📈 Class Totals&quot;],[&quot;weekly&quot;,&quot;📅 Weekly&quot;]].forEach(function(t){
     html += '&lt;div class=&quot;mw-lb-tab'+(mw.lbTab===t[0]?&quot; active&quot;:&quot;&quot;)+'&quot; onclick=&quot;mw.lbTab=\''+t[0]+'\';mwRender();mwLoadLeaderboard()&quot;&gt;'+t[1]+'&lt;/div&gt;';
   });
-  html += '&lt;/div&gt;&lt;div id=&quot;mw-lb-list&quot; class=&quot;mw-card&quot;&gt;&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Loading…&lt;/p&gt;&lt;/div&gt;';
-  html += '&lt;div style=&quot;text-align:center;margin-top:.8rem&quot;&gt;&lt;button class=&quot;mw-btn ghost&quot; onclick=&quot;mw.screen=\'menu\';mwRender()&quot;&gt;Back to Menu&lt;/button&gt;&lt;/div&gt;';
+  html += '&lt;/div&gt;';
+  if(mw.lbTab===&quot;class&quot;){
+    html += '&lt;div class=&quot;mw-class-picker&quot;&gt;';
+    MW_CLASSES.forEach(function(c){
+      html += '&lt;div class=&quot;mw-class-pick-btn'+(mw.cls===c?&quot; active&quot;:&quot;&quot;)+'&quot; style=&quot;'+(mw.cls===c?&quot;background:var(--gd);color:#fff&quot;:&quot;&quot;)+'&quot; onclick=&quot;mw.cls=\''+c+'\';mwRender();mwLoadLeaderboard()&quot;&gt;'+c+'&lt;/div&gt;';
+    });
+    html += '&lt;/div&gt;';
+  }
+  html += '&lt;div id=&quot;mw-lb-list&quot; class=&quot;mw-card&quot;&gt;&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Loading…&lt;/p&gt;&lt;/div&gt;';
+  var backLabel = mw.name ? &quot;Back to Menu&quot; : &quot;Back to Home&quot;;
+  var backFn = mw.name ? &quot;mw.screen='menu';mwRender()&quot; : &quot;show('s0')&quot;;
+  html += '&lt;div style=&quot;text-align:center;margin-top:.8rem&quot;&gt;&lt;button class=&quot;mw-btn ghost&quot; onclick=&quot;'+backFn+'&quot;&gt;'+backLabel+'&lt;/button&gt;&lt;/div&gt;';
   root.innerHTML = html;
 }
 function mwLoadLeaderboard(){
@@ -1646,11 +1683,12 @@ function mwLoadLeaderboard(){
     return;
   }
   if(mw.lbTab===&quot;class&quot;){
+    if(!mw.cls){ list.innerHTML = '&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Pick a class above to see its leaderboard.&lt;/p&gt;'; return; }
     mwDb.collection(&quot;morningWorkScores&quot;).where(&quot;date&quot;,&quot;==&quot;,mwToday()).where(&quot;cls&quot;,&quot;==&quot;,mw.cls).where(&quot;type&quot;,&quot;==&quot;,&quot;daily&quot;)
       .get().then(function(snap){
         var rows=[]; snap.forEach(function(doc){ rows.push(doc.data()); });
         rows.sort(function(a,b){ return b.score-a.score; });
-        mwRenderLBRows(rows.slice(0,10), &quot;No one from Class &quot;+mw.cls+&quot; has done Morning Work yet today.&quot;);
+        mwRenderLBRows(rows.slice(0,10), &quot;No one from Class &quot;+mw.cls+&quot; has done Morning Work yet today.&quot;, &quot;score&quot;, &quot;pts&quot;);
       }).catch(function(e){ list.innerHTML='&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Could not load leaderboard.&lt;/p&gt;'; console.warn(e); });
   } else if(mw.lbTab===&quot;cross&quot;){
     mwDb.collection(&quot;morningWorkScores&quot;).where(&quot;date&quot;,&quot;==&quot;,mwToday()).where(&quot;type&quot;,&quot;==&quot;,&quot;daily&quot;)
@@ -1662,26 +1700,45 @@ function mwLoadLeaderboard(){
         });
         var rows=Object.values(byClass);
         rows.sort(function(a,b){ return b.score-a.score; });
-        mwRenderLBRows(rows, &quot;No class champions yet today.&quot;);
+        mwRenderLBRows(rows, &quot;No class champions yet today. Be the first!&quot;, &quot;score&quot;, &quot;pts&quot;);
+      }).catch(function(e){ list.innerHTML='&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Could not load leaderboard.&lt;/p&gt;'; console.warn(e); });
+  } else if(mw.lbTab===&quot;totals&quot;){
+    mwDb.collection(&quot;morningWorkScores&quot;).where(&quot;type&quot;,&quot;==&quot;,&quot;daily&quot;)
+      .get().then(function(snap){
+        var byClass={};
+        snap.forEach(function(doc){
+          var d=doc.data();
+          if(!d.cls) return;
+          if(!byClass[d.cls]) byClass[d.cls]={cls:d.cls,name:&quot;Class &quot;+d.cls,correct:0,sessions:0};
+          byClass[d.cls].correct += (d.correct||0);
+          byClass[d.cls].sessions += 1;
+        });
+        var rows=Object.values(byClass);
+        rows.sort(function(a,b){ return b.correct-a.correct; });
+        mwRenderLBRows(rows, &quot;No Morning Work sessions recorded yet.&quot;, &quot;correct&quot;, &quot;correct answers&quot;, true);
       }).catch(function(e){ list.innerHTML='&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Could not load leaderboard.&lt;/p&gt;'; console.warn(e); });
   } else if(mw.lbTab===&quot;weekly&quot;){
     mwDb.collection(&quot;morningWorkScores&quot;).where(&quot;weekOf&quot;,&quot;==&quot;,mwMonday()).where(&quot;type&quot;,&quot;==&quot;,&quot;friday&quot;)
       .get().then(function(snap){
         var rows=[]; snap.forEach(function(doc){ rows.push(doc.data()); });
         rows.sort(function(a,b){ return b.score-a.score; });
-        mwRenderLBRows(rows.slice(0,15), &quot;No Friday Math Facts scores yet this week.&quot;);
+        mwRenderLBRows(rows.slice(0,15), &quot;No Friday Math Facts scores yet this week.&quot;, &quot;score&quot;, &quot;pts&quot;);
       }).catch(function(e){ list.innerHTML='&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;Could not load leaderboard.&lt;/p&gt;'; console.warn(e); });
   }
 }
-function mwRenderLBRows(rows, emptyMsg){
+function mwRenderLBRows(rows, emptyMsg, field, unit, isClassRow){
   var list = document.getElementById(&quot;mw-lb-list&quot;);
   if(!list) return;
   if(!rows.length){ list.innerHTML = '&lt;p style=&quot;color:var(--mu);text-align:center&quot;&gt;'+emptyMsg+'&lt;/p&gt;'; return; }
   var html=&quot;&quot;;
   rows.forEach(function(r,i){
     html += '&lt;div class=&quot;mw-lb-row'+(i===0?&quot; gold&quot;:&quot;&quot;)+'&quot;&gt;&lt;div class=&quot;mw-lb-rank&quot;&gt;'+(i===0?&quot;🥇&quot;:i===1?&quot;🥈&quot;:i===2?&quot;🥉&quot;:(i+1))+'&lt;/div&gt;';
-    html += '&lt;div class=&quot;mw-lb-name&quot;&gt;'+r.name+'&lt;span class=&quot;mw-lb-class&quot;&gt;'+r.cls+'&lt;/span&gt;&lt;/div&gt;';
-    html += '&lt;div class=&quot;mw-lb-score&quot;&gt;'+r.score+'&lt;/div&gt;&lt;/div&gt;';
+    if(isClassRow){
+      html += '&lt;div class=&quot;mw-lb-name&quot;&gt;'+r.name+'&lt;span class=&quot;mw-lb-class&quot;&gt;'+r.sessions+' session'+(r.sessions===1?&quot;&quot;:&quot;s&quot;)+'&lt;/span&gt;&lt;/div&gt;';
+    } else {
+      html += '&lt;div class=&quot;mw-lb-name&quot;&gt;'+r.name+'&lt;span class=&quot;mw-lb-class&quot;&gt;'+r.cls+'&lt;/span&gt;&lt;/div&gt;';
+    }
+    html += '&lt;div class=&quot;mw-lb-score&quot;&gt;'+r[field]+(unit?' &lt;span style=&quot;font-size:.65rem;color:var(--mu);font-weight:600&quot;&gt;'+unit+'&lt;/span&gt;':'')+'&lt;/div&gt;&lt;/div&gt;';
   });
   list.innerHTML = html;
 }
@@ -4030,9 +4087,10 @@ Router.go('home');
 
 <script>
 (function () {
-  var VALID = ['home', 'mca', 'nwea'];
+  var VALID = ['home', 'mca', 'nwea', 'morningwork', 'leaderboard'];
   var tabs = document.querySelectorAll('.tab-btn');
   var panels = document.querySelectorAll('.tab-panel');
+  var mcaFrame = document.querySelector('.tab-panel[data-tab-panel="mca"] iframe');
 
   function activate(tabName) {
     if (VALID.indexOf(tabName) === -1) return;
@@ -4042,8 +4100,19 @@ Router.go('home');
       t.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     panels.forEach(function (p) {
-      p.classList.toggle('active', p.dataset.tabPanel === tabName);
+      var pt = p.dataset.tabPanel;
+      var show = pt === tabName || ((tabName === 'morningwork' || tabName === 'leaderboard') && pt === 'mca');
+      p.classList.toggle('active', show);
     });
+    if (mcaFrame && mcaFrame.contentWindow) {
+      try {
+        if (tabName === 'morningwork' && typeof mcaFrame.contentWindow.mwOpen === 'function') {
+          mcaFrame.contentWindow.mwOpen();
+        } else if (tabName === 'leaderboard' && typeof mcaFrame.contentWindow.mwOpenLeaderboardDirect === 'function') {
+          mcaFrame.contentWindow.mwOpenLeaderboardDirect();
+        }
+      } catch (e) {}
+    }
     try { history.replaceState(null, '', '#' + tabName); } catch (e) {}
   }
 
