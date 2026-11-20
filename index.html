@@ -555,10 +555,10 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
   --mw-radius:18px;
 }
 .mw-card{background:var(--wh);border:1px solid var(--bo);border-radius:var(--mw-radius);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--mw-shadow-sm);transition:box-shadow .25s var(--mw-ease)}
-.mw-class-grid{display:flex;flex-wrap:nowrap;gap:.6rem;margin-top:1rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:thin}
+.mw-class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:.6rem;margin-top:1rem}
 .mw-class-grid::-webkit-scrollbar{height:6px}
 .mw-class-grid::-webkit-scrollbar-thumb{background:var(--bo);border-radius:99px}
-.mw-class-grid .mw-class-btn{flex:0 0 auto;min-width:72px}
+.mw-class-grid .mw-class-btn{min-width:0}
 .mw-class-btn{background:var(--wh);border:1.5px solid var(--bo);border-radius:14px;padding:1.1rem .6rem;text-align:center;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:800;font-size:1.3rem;color:var(--gd);transition:all .22s var(--mw-ease);box-shadow:var(--mw-shadow-sm)}
 .mw-class-btn:hover{border-color:var(--ga);transform:translateY(-3px);box-shadow:var(--mw-shadow-md)}
 .mw-class-btn:active{transform:translateY(0) scale(.97);transition-duration:.08s}
@@ -761,9 +761,11 @@ main{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 .tp-teacher-btn:hover{filter:brightness(1.1)}
 .tp-teacher-btn.small{padding:.45rem .9rem;font-size:.85rem}
 
+.tp-print-row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-top:.8rem;padding-top:.8rem;border-top:1px dashed var(--bo)}
+
 .mw-friday{background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;border:none;border-radius:14px;padding:1.2rem;cursor:pointer;width:100%;font-family:'Outfit',sans-serif;font-weight:800;font-size:1.05rem;margin-top:1rem}
 .mw-note{font-size:.78rem;color:var(--mu);text-align:center;margin-top:.5rem}
-@media(max-width:600px){.mw-class-btn{padding:.9rem .5rem;font-size:1.1rem;min-width:62px}}
+@media(max-width:600px){.mw-class-btn{padding:.9rem .4rem;font-size:1.1rem}}
 
 &lt;/style&gt;
 &lt;script src=&quot;https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js&quot;&gt;&lt;/script&gt;
@@ -2374,7 +2376,41 @@ function mwGenFridayFacts(){
   return facts;
 }
 
-function mwOpen(){ mw.screen=&quot;classSelect&quot;; show(&quot;s5&quot;); mwRender(); }
+/* Students stay signed in (initials only) for the rest of the school day, across the top tabs,
+   page reloads, and other browser tabs, until they tap &quot;Switch student&quot;. */
+var MW_LOGIN_KEY = &quot;mwStudentLogin&quot;;
+function mwRememberStudent(){
+  try{ localStorage.setItem(MW_LOGIN_KEY, JSON.stringify({cls:mw.cls, name:mw.name, date:mwToday()})); }catch(e){}
+}
+function mwForgetStudent(){
+  try{ localStorage.removeItem(MW_LOGIN_KEY); }catch(e){}
+  mw.name = &quot;&quot;;
+}
+function mwRestoreStudent(){
+  if(mw.name &amp;&amp; mw.cls) return true;
+  try{
+    var s = JSON.parse(localStorage.getItem(MW_LOGIN_KEY) || &quot;null&quot;);
+    if(s &amp;&amp; s.date===mwToday() &amp;&amp; s.cls &amp;&amp; s.name &amp;&amp; MW_CLASSES.indexOf(s.cls)!==-1){
+      mw.cls = s.cls; mw.grade = mwGradeOf(s.cls); mw.name = s.name; mw._sidebarCacheKey = null;
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function mwSwitchStudent(){ mwForgetStudent(); mw.screen = &quot;classSelect&quot;; mwRender(); }
+function mwOpen(){
+  // Coming back from another tab never interrupts a session or resets the student.
+  if([&quot;classSelect&quot;,&quot;nameEntry&quot;,&quot;menu&quot;,&quot;leaderboard&quot;].indexOf(mw.screen)!==-1){
+    mw.screen = mwRestoreStudent() ? &quot;menu&quot; : &quot;classSelect&quot;;
+  }
+  show(&quot;s5&quot;); mwRender();
+}
+window.addEventListener(&quot;storage&quot;, function(e){
+  // Another browser tab signed a different student in or out: follow it so work is never saved under the wrong initials.
+  if(e.key!==MW_LOGIN_KEY || [&quot;session&quot;,&quot;prep&quot;].indexOf(mw.screen)!==-1) return;
+  mw.name = &quot;&quot;; var had = mwRestoreStudent();
+  if([&quot;classSelect&quot;,&quot;nameEntry&quot;,&quot;menu&quot;].indexOf(mw.screen)!==-1){ mw.screen = had ? &quot;menu&quot; : &quot;classSelect&quot;; mwRender(); }
+});
 function mwOpenLeaderboardDirect(){ mw.screen=&quot;leaderboard&quot;; if(!mw.lbTab||mw.lbTab===&quot;none&quot;)mw.lbTab=&quot;cross&quot;; show(&quot;s5&quot;); mwRender(); mwLoadLeaderboard(); }
 function mwStopTimer(){ if(mw.timer){ clearInterval(mw.timer); mw.timer=null; } }
 
@@ -2442,6 +2478,7 @@ function mwSubmitName(){
   // is never assigned to mw, never written to Firestore, and never sent anywhere.
   var initials = (first.charAt(0) + last.charAt(0)).toUpperCase() + num;
   mw.name = initials;
+  mwRememberStudent();
   mw.screen=&quot;menu&quot;; mwRender();
 }
 
@@ -2459,7 +2496,7 @@ function mwRenderMenu(root){
   html += '&lt;div class=&quot;mw-menu-tile&quot; onclick=&quot;mw.lbTab=\'weekly\';mw.screen=\'leaderboard\';mwRender();mwLoadLeaderboard()&quot;&gt;&lt;h4&gt;📅 Weekly Champion&lt;/h4&gt;&lt;p&gt;This week\'s Friday Math Facts leaderboard.&lt;/p&gt;&lt;/div&gt;';
   html += '&lt;div id=&quot;mw-h2h-slot&quot;&gt;&lt;div class=&quot;mw-menu-tile mw-h2h-locked&quot;&gt;&lt;h4&gt;🔒 Head-to-Head Math Facts&lt;/h4&gt;&lt;p&gt;Finish today\'s Morning Work to unlock a live challenge against a classmate.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;';
   html += '&lt;/div&gt;';
-  html += '&lt;div style=&quot;text-align:center;margin-top:1rem&quot;&gt;&lt;button class=&quot;mw-btn ghost&quot; onclick=&quot;mw.screen=\'nameEntry\';mwRender()&quot;&gt;Not '+mw.name+'? Switch student&lt;/button&gt;&lt;/div&gt;';
+  html += '&lt;div style=&quot;text-align:center;margin-top:1rem&quot;&gt;&lt;button class=&quot;mw-btn ghost&quot; onclick=&quot;mwSwitchStudent()&quot;&gt;Not '+mw.name+'? Switch student&lt;/button&gt;&lt;/div&gt;';
   html += '&lt;div class=&quot;mw-admin-link&quot;&gt;&lt;a href=&quot;#&quot; onclick=&quot;mw.screen=\'admin\';mwRender();return false;&quot; title=&quot;Staff only&quot;&gt;⚙&lt;/a&gt;&lt;/div&gt;&lt;div style=&quot;text-align:center;margin-top:.6rem&quot;&gt;&lt;button class=&quot;tp-teacher-btn small&quot; onclick=&quot;mw.screen=\'teach\';mwRender()&quot;&gt;👩‍🏫 Teacher Login&lt;/button&gt;&lt;/div&gt;';
   root.innerHTML = html;
   mwLoadMyTotals(function(data){
@@ -2827,10 +2864,10 @@ function mwStudentKey(cls, name){
 }
 function mwStudentId(cls, name){ return mwStudentKey(cls, name); }
 function mwMarkCompletedLocally(){
-  try{ sessionStorage.setItem(&quot;mwCompletedToday_&quot;+mwStudentId(mw.cls,mw.name), mwToday()); }catch(e){}
+  try{ localStorage.setItem(&quot;mwCompletedToday_&quot;+mwStudentId(mw.cls,mw.name), mwToday()); }catch(e){}
 }
 function mwHasCompletedTodayLocally(){
-  try{ return sessionStorage.getItem(&quot;mwCompletedToday_&quot;+mwStudentId(mw.cls,mw.name)) === mwToday(); }catch(e){ return false; }
+  try{ return localStorage.getItem(&quot;mwCompletedToday_&quot;+mwStudentId(mw.cls,mw.name)) === mwToday(); }catch(e){ return false; }
 }
 function mwFinishSession(){
   mwSaveScore({
@@ -3831,6 +3868,9 @@ function mwRenderDailyPicker(){
     '&lt;button class=&quot;tp-chip'+(mwTeach.date===mwNextSchoolDay()?&quot; on&quot;:&quot;&quot;)+'&quot; onclick=&quot;mwTpSetDate(\''+mwNextSchoolDay()+'\')&quot;&gt;Next school day&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;';
   html += '&lt;div class=&quot;tp-status&quot; id=&quot;tp-status-line&quot;&gt;'+mwTpStatusLine()+'&lt;/div&gt;';
   html += '&lt;/div&gt;';
+  html += '&lt;div class=&quot;tp-print-row&quot;&gt;&lt;button class=&quot;tp-teacher-btn small&quot; onclick=&quot;mwTpPrint()&quot;&gt;🖨️ Print Morning Work for '+mwFmtDate(mwTeach.date)+'&lt;/button&gt;'+
+    '&lt;label class=&quot;tp-check&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;tp-print-key&quot; checked&gt; Include answer key&lt;/label&gt;'+
+    '&lt;span class=&quot;tp-muted tp-small&quot;&gt;Prints your picks plus the normal mix for any open slots: 2 reading, 3 math, 10 rapid facts, 5 vocab.&lt;/span&gt;&lt;/div&gt;';
   html += '&lt;details class=&quot;tp-how&quot;&gt;&lt;summary&gt;How picks work&lt;/summary&gt;&lt;p&gt;Each student\'s Morning Work has 2 reading, 3 math, 10 rapid facts, and 5 vocab questions. '+
     'Any review question a student is due for (something they missed 10 to 20 days ago) comes first. Your picks fill the remaining slots. '+
     'Anything still open uses the normal random mix, which skips questions the student already answered correctly. '+
@@ -4444,6 +4484,167 @@ function mwRenderTeachToday(){
     h += '&lt;/table&gt;&lt;/div&gt;&lt;p class=&quot;tp-muted tp-small&quot;&gt;'+rows.length+' student'+(rows.length===1?&quot;&quot;:&quot;s&quot;)+' completed on '+mwFmtDate(mwTeach.todayDate)+'.&lt;/p&gt;';
     el.innerHTML = h;
   }).catch(function(e){ console.warn(e); var el=document.getElementById(&quot;tp-today&quot;); if(el) el.innerHTML = '&lt;p class=&quot;tp-muted&quot;&gt;Could not load completions.&lt;/p&gt;'; });
+}
+
+/* ===================== PRINTABLE MORNING WORK =====================
+   Builds a paper version of one Morning Work session (reading, math, rapid facts, vocab) from the
+   teacher's picks for the selected day; any open slots are filled from the normal question bank. */
+function mwPrintClean(s){ return String(s==null?&quot;&quot;:s).replace(/^\s*📘\s*MN Item Sampler\s*[—-]\s*/,&quot;&quot;); }
+function mwTpBuildPrintSet(){
+  var cls = mwTeach.cls, bank = mwBank(cls);
+  function picked(sec){ return mwShuffle(Object.keys(mwTeach.sel[sec]).map(function(k){ return bank.byKey[k]; }).filter(Boolean)); }
+  function wordsOf(pi){ var p = bank.passages[pi]; return p ? mwPlain(p.text).split(&quot; &quot;).length : 9999; }
+  // Reading: 2 questions, kept on one passage when possible so the page stays short.
+  var reading = picked(&quot;reading&quot;).slice(0,2);
+  if(reading.length&lt;2){
+    var used = reading.map(function(it){ return it.key; });
+    var anchor = reading.length ? reading[0].passageIdx : null;
+    var pool = bank.reading.filter(function(it){ return used.indexOf(it.key)===-1; });
+    var cands = anchor!==null ? pool.filter(function(it){ return it.passageIdx===anchor; }) : [];
+    if(!cands.length){
+      var shortIds = {};
+      bank.reading.forEach(function(it){ if(wordsOf(it.passageIdx)&lt;=400) shortIds[it.passageIdx]=1; });
+      var ids = Object.keys(shortIds);
+      var pid = ids.length ? +ids[Math.floor(Math.random()*ids.length)] : (pool[0] &amp;&amp; pool[0].passageIdx);
+      cands = pool.filter(function(it){ return it.passageIdx===pid; });
+    }
+    mwShuffle(cands);
+    var skills = reading.map(function(it){ return it.skill; });
+    cands.sort(function(a,b){ return (skills.indexOf(a.skill)===-1?0:1)-(skills.indexOf(b.skill)===-1?0:1); });
+    while(reading.length&lt;2 &amp;&amp; cands.length) reading.push(cands.shift());
+  }
+  // Math: 3 questions, filled with an easy, medium, hard mix.
+  var math = picked(&quot;math&quot;).slice(0,3);
+  [&quot;easy&quot;,&quot;medium&quot;,&quot;hard&quot;,&quot;medium&quot;].forEach(function(d){
+    if(math.length&gt;=3) return;
+    var c = mwShuffle(bank.math.filter(function(it){ return it.diff===d &amp;&amp; math.indexOf(it)===-1; }));
+    if(c.length) math.push(c[0]);
+  });
+  // Vocab: 5 questions, spread across different skills.
+  var vocab = picked(&quot;vocab&quot;).slice(0,5);
+  var vpool = mwShuffle(bank.vocab.filter(function(it){ return vocab.indexOf(it)===-1; }));
+  vpool.sort(function(a,b){
+    var ga = vocab.filter(function(v){ return v.group===a.group; }).length, gb = vocab.filter(function(v){ return v.group===b.group; }).length;
+    return ga-gb;
+  });
+  while(vocab.length&lt;5 &amp;&amp; vpool.length){
+    var groupsUsed = vocab.map(function(v){ return v.group; });
+    var idx = 0; for(var i=0;i&lt;vpool.length;i++){ if(groupsUsed.indexOf(vpool[i].group)===-1){ idx=i; break; } }
+    vocab.push(vpool.splice(idx,1)[0]);
+  }
+  // Rapid facts: the same mixed plan students get online.
+  var ops = mwFactOpsPlan(cls), max = mwFactMax(cls), facts = [], seen = {};
+  ops.forEach(function(op){
+    if(op===&quot;×&quot;){
+      var a, b, k, tries = 0;
+      do { a = 2+Math.floor(Math.random()*(max-1)); b = 2+Math.floor(Math.random()*(max-1)); k = mwMultPairKey(a,b); tries++; } while(seen[k] &amp;&amp; tries&lt;30);
+      seen[k] = 1; facts.push({prompt:a+&quot; × &quot;+b, answer:a*b});
+    } else { var f = mwPlanAddSubFact(cls, 3, op); facts.push({prompt:f.prompt, answer:f.answer}); }
+  });
+  return {reading:reading, math:math, vocab:vocab, facts:facts};
+}
+function mwTpPrintHTML(set, withKey){
+  var cls = mwTeach.cls, bank = mwBank(cls), L = [&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;D&quot;,&quot;E&quot;];
+  var dateTxt = (function(){ var p = mwTeach.date.split(&quot;-&quot;); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString([], {weekday:&quot;long&quot;, month:&quot;long&quot;, day:&quot;numeric&quot;, year:&quot;numeric&quot;}); })();
+  function choices(it){
+    return '&lt;ol class=&quot;ch&quot;&gt;'+it.choices.map(function(c,i){ return '&lt;li&gt;&lt;span class=&quot;bub&quot;&gt;'+L[i]+'&lt;/span&gt;'+mwEsc(mwPlain(c))+'&lt;/li&gt;'; }).join('')+'&lt;/ol&gt;';
+  }
+  var n = 0, h = '';
+  h += '&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Morning Work · Class '+cls+' · '+mwTeach.date+'&lt;/title&gt;&lt;style&gt;'+
+    '@page{size:letter;margin:0.55in 0.6in}'+
+    '*{box-sizing:border-box}body{font-family:&quot;Segoe UI&quot;,Arial,Helvetica,sans-serif;color:#111;font-size:11.5pt;line-height:1.4;margin:0}'+
+    '.hdr{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0B3D2E;padding-bottom:10px;margin-bottom:12px}'+
+    '.hdr img{width:58px;height:58px}.hdr .t{flex:1}.hdr h1{font-size:20pt;margin:0;color:#0B3D2E;letter-spacing:.2px}.hdr .sub{font-size:10pt;color:#444}'+
+    '.score{border:2px solid #0B3D2E;border-radius:8px;padding:6px 12px;text-align:center;font-size:9pt;color:#0B3D2E;font-weight:700}.score b{display:block;font-size:14pt;color:#111;margin-top:2px}'+
+    '.who{display:flex;gap:28px;margin:0 0 14px;font-size:11pt}.who span{flex:1;border-bottom:1.5px solid #333;padding-bottom:2px}.who span.sm{flex:0 0 140px}'+
+    '.sec{margin:0 0 14px;break-inside:auto}.sec h2{font-size:12.5pt;margin:0 0 8px;padding:5px 10px;background:#0B3D2E;color:#fff;border-radius:6px;display:flex;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.sec h2 small{font-weight:400;font-size:9.5pt;opacity:.9}'+
+    '.passage{border:1.5px solid #9CA3AF;border-radius:8px;padding:10px 14px;margin:0 0 10px;font-size:11pt;line-height:1.5}.passage h3{margin:0 0 6px;font-size:11.5pt}.passage p{margin:0 0 6px}'+
+    '.q{margin:0 0 12px;break-inside:avoid}.q .p{font-weight:600}.q .p .num{display:inline-block;min-width:30px;font-weight:800;color:#0B3D2E}'+
+    '.ch{list-style:none;padding:0;margin:6px 0 0 22px;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}.ch.long{grid-template-columns:1fr}'+
+    '.ch li{display:flex;gap:8px;align-items:flex-start}.bub{flex:0 0 20px;height:20px;border:1.5px solid #333;border-radius:50%;font-size:8.5pt;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-top:1px}'+
+    '.work{border:1.5px dashed #9CA3AF;border-radius:6px;height:70px;margin:8px 0 0 22px;font-size:8pt;color:#9CA3AF;padding:3px 7px}'+
+    '.fig{margin:6px 0 0 22px}.fig svg{max-width:100%;height:auto}'+
+    '.facts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px 12px}.fact{border:1.5px solid #9CA3AF;border-radius:8px;padding:9px 8px;text-align:center;font-size:14pt;font-weight:700;break-inside:avoid}'+
+    '.fact .ln{display:block;border-bottom:1.5px solid #333;height:24px;margin:6px 8px 0}.fact .n{display:block;font-size:8pt;color:#666;text-align:left;font-weight:600}'+
+    '.note{font-size:9pt;color:#555;margin:-2px 0 8px}'+'.sec.keep{break-inside:avoid}.sec h2{break-after:avoid}'+'.passage table{border-collapse:collapse;margin:6px 0 2px}.passage td,.passage th{border:1px solid #bbb;padding:3px 9px;text-align:left}'+
+    '.foot{margin-top:10px;font-size:8.5pt;color:#666;text-align:center;border-top:1px solid #ddd;padding-top:6px}'+
+    '.key{break-before:page}.key table{width:100%;border-collapse:collapse;font-size:10.5pt;table-layout:fixed}.key col.c1{width:5%}.key col.c2{width:10%}.key col.c3{width:35%}.key col.c4{width:50%}.key td,.key th{border:1px solid #bbb;padding:5px 8px;vertical-align:top;text-align:left}.key th{background:#E8F3EE;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.key .ans{font-weight:800;color:#0B3D2E}.key .ex{font-size:9.5pt;color:#333}'+
+    '&lt;/style&gt;&lt;/head&gt;&lt;body&gt;';
+  h += '&lt;div class=&quot;hdr&quot;&gt;&lt;img src=&quot;'+MW_LOGO+'&quot; alt=&quot;&quot;&gt;&lt;div class=&quot;t&quot;&gt;&lt;h1&gt;Morning Work&lt;/h1&gt;&lt;div class=&quot;sub&quot;&gt;Bultum Academy · Class '+mwEsc(cls)+' ('+mwEsc(mwGradeOf(cls))+') · '+mwEsc(dateTxt)+'&lt;/div&gt;&lt;/div&gt;'+
+    '&lt;div class=&quot;score&quot;&gt;SCORE&lt;b&gt;_____ / 125&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;';
+  h += '&lt;div class=&quot;who&quot;&gt;&lt;span&gt;Name:&lt;/span&gt;&lt;span class=&quot;sm&quot;&gt;Date:&lt;/span&gt;&lt;/div&gt;';
+  // Reading
+  if(set.reading.length){
+    h += '&lt;div class=&quot;sec&quot;&gt;&lt;h2&gt;📖 Part 1 · Reading &lt;small&gt;10 points each&lt;/small&gt;&lt;/h2&gt;&lt;div class=&quot;note&quot;&gt;Read the passage. Then circle the best answer.&lt;/div&gt;';
+    var shown = {};
+    set.reading.forEach(function(it){
+      if(!shown[it.passageIdx]){
+        shown[it.passageIdx] = 1;
+        var p = bank.passages[it.passageIdx];
+        if(p) h += '&lt;div class=&quot;passage&quot;&gt;&lt;h3&gt;'+mwEsc(mwPlain(p.title).replace(/^Section \d+\s*[—-]\s*/,&quot;&quot;).replace(/^Passage \d+\s*[—-]\s*/,&quot;&quot;))+'&lt;/h3&gt;'+p.text+'&lt;/div&gt;';
+      }
+      n++;
+      h += '&lt;div class=&quot;q&quot;&gt;&lt;div class=&quot;p&quot;&gt;&lt;span class=&quot;num&quot;&gt;'+n+'.&lt;/span&gt;'+mwEsc(mwPlain(it.prompt))+'&lt;/div&gt;'+choices(it)+'&lt;/div&gt;';
+    });
+    h += '&lt;/div&gt;';
+  }
+  // Math
+  h += '&lt;div class=&quot;sec&quot;&gt;&lt;h2&gt;🔢 Part 2 · Math &lt;small&gt;10 points each · show your work&lt;/small&gt;&lt;/h2&gt;';
+  set.math.forEach(function(it){
+    n++;
+    var longCh = it.choices.some(function(c){ return mwPlain(c).length&gt;34; });
+    h += '&lt;div class=&quot;q&quot;&gt;&lt;div class=&quot;p&quot;&gt;&lt;span class=&quot;num&quot;&gt;'+n+'.&lt;/span&gt;'+mwEsc(mwPlain(mwPrintClean(it.prompt)))+'&lt;/div&gt;'+
+      (it.q.length&gt;5 &amp;&amp; it.q[5] ? '&lt;div class=&quot;fig&quot;&gt;'+it.q[5]+'&lt;/div&gt;' : '')+
+      choices(it).replace('&lt;ol class=&quot;ch&quot;&gt;', '&lt;ol class=&quot;ch'+(longCh?' long':'')+'&quot;&gt;')+
+      '&lt;div class=&quot;work&quot;&gt;Work space&lt;/div&gt;&lt;/div&gt;';
+  });
+  h += '&lt;/div&gt;';
+  // Facts
+  h += '&lt;div class=&quot;sec keep&quot;&gt;&lt;h2&gt;⚡ Part 3 · Rapid Math Facts &lt;small&gt;5 points each · try to finish in 2 minutes&lt;/small&gt;&lt;/h2&gt;&lt;div class=&quot;facts&quot;&gt;';
+  set.facts.forEach(function(f,i){ h += '&lt;div class=&quot;fact&quot;&gt;&lt;span class=&quot;n&quot;&gt;'+(i+1)+'&lt;/span&gt;'+mwEsc(f.prompt)+' =&lt;span class=&quot;ln&quot;&gt;&lt;/span&gt;&lt;/div&gt;'; });
+  h += '&lt;/div&gt;&lt;/div&gt;';
+  // Vocab
+  h += '&lt;div class=&quot;sec&quot;&gt;&lt;h2&gt;📝 Part 4 · Vocabulary &amp; Grammar &lt;small&gt;5 points each&lt;/small&gt;&lt;/h2&gt;';
+  set.vocab.forEach(function(it){
+    n++;
+    var longCh = it.choices.some(function(c){ return mwPlain(c).length&gt;34; });
+    h += '&lt;div class=&quot;q&quot;&gt;&lt;div class=&quot;p&quot;&gt;&lt;span class=&quot;num&quot;&gt;'+n+'.&lt;/span&gt;'+mwEsc(mwPlain(it.prompt))+'&lt;/div&gt;'+choices(it).replace('&lt;ol class=&quot;ch&quot;&gt;', '&lt;ol class=&quot;ch'+(longCh?' long':'')+'&quot;&gt;')+'&lt;/div&gt;';
+  });
+  h += '&lt;/div&gt;';
+  h += '&lt;div class=&quot;foot&quot;&gt;Bultum Academy Morning Work · Questions aligned to Minnesota standards and MCA practice&lt;/div&gt;';
+  // Answer key
+  if(withKey){
+    h += '&lt;div class=&quot;key&quot;&gt;&lt;div class=&quot;hdr&quot;&gt;&lt;img src=&quot;'+MW_LOGO+'&quot; alt=&quot;&quot;&gt;&lt;div class=&quot;t&quot;&gt;&lt;h1&gt;Answer Key&lt;/h1&gt;&lt;div class=&quot;sub&quot;&gt;Morning Work · Class '+mwEsc(cls)+' · '+mwEsc(dateTxt)+'&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;';
+    h += '&lt;table&gt;&lt;colgroup&gt;&lt;col class=&quot;c1&quot;&gt;&lt;col class=&quot;c2&quot;&gt;&lt;col class=&quot;c3&quot;&gt;&lt;col class=&quot;c4&quot;&gt;&lt;/colgroup&gt;&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Part&lt;/th&gt;&lt;th&gt;Answer&lt;/th&gt;&lt;th&gt;Skill / how to solve&lt;/th&gt;&lt;/tr&gt;';
+    var k = 0;
+    set.reading.forEach(function(it){ k++; h += '&lt;tr&gt;&lt;td&gt;'+k+'&lt;/td&gt;&lt;td&gt;Reading&lt;/td&gt;&lt;td class=&quot;ans&quot;&gt;'+L[it.ans]+'. '+mwEsc(mwPlain(it.choices[it.ans]))+'&lt;/td&gt;&lt;td class=&quot;ex&quot;&gt;'+mwEsc(it.skill)+'&lt;/td&gt;&lt;/tr&gt;'; });
+    set.math.forEach(function(it){ k++; h += '&lt;tr&gt;&lt;td&gt;'+k+'&lt;/td&gt;&lt;td&gt;Math&lt;/td&gt;&lt;td class=&quot;ans&quot;&gt;'+L[it.ans]+'. '+mwEsc(mwPlain(it.choices[it.ans]))+'&lt;/td&gt;&lt;td class=&quot;ex&quot;&gt;&lt;strong&gt;'+mwEsc(it.group)+'.&lt;/strong&gt; '+mwEsc(mwPlain(it.explain).replace(/\s*Step \d+:\s*/g,&quot; &quot;).trim())+'&lt;/td&gt;&lt;/tr&gt;'; });
+    h += '&lt;tr&gt;&lt;td colspan=&quot;4&quot; style=&quot;background:#F6F7F6&quot;&gt;&lt;strong&gt;Rapid facts:&lt;/strong&gt; '+set.facts.map(function(f,i){ return (i+1)+') '+mwEsc(f.prompt)+' = &lt;strong&gt;'+f.answer+'&lt;/strong&gt;'; }).join(' &amp;nbsp;·&amp;nbsp; ')+'&lt;/td&gt;&lt;/tr&gt;';
+    set.vocab.forEach(function(it){ k++; h += '&lt;tr&gt;&lt;td&gt;'+k+'&lt;/td&gt;&lt;td&gt;Vocab&lt;/td&gt;&lt;td class=&quot;ans&quot;&gt;'+L[it.ans]+'. '+mwEsc(mwPlain(it.choices[it.ans]))+'&lt;/td&gt;&lt;td class=&quot;ex&quot;&gt;'+mwEsc(it.group)+'&lt;/td&gt;&lt;/tr&gt;'; });
+    h += '&lt;/table&gt;&lt;p style=&quot;font-size:9.5pt;color:#555;margin-top:10px&quot;&gt;Scoring matches the online version: reading and math 10 points each, facts and vocab 5 points each, 125 total.&lt;/p&gt;&lt;/div&gt;';
+  }
+  h += '&lt;/body&gt;&lt;/html&gt;';
+  return h;
+}
+function mwTpPrint(){
+  var withKey = !!(document.getElementById(&quot;tp-print-key&quot;) &amp;&amp; document.getElementById(&quot;tp-print-key&quot;).checked);
+  var html = mwTpPrintHTML(mwTpBuildPrintSet(), withKey);
+  var old = document.getElementById(&quot;mw-print-frame&quot;); if(old) old.remove();
+  var ifr = document.createElement(&quot;iframe&quot;);
+  ifr.id = &quot;mw-print-frame&quot;;
+  ifr.setAttribute(&quot;aria-hidden&quot;,&quot;true&quot;);
+  ifr.style.cssText = &quot;position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden&quot;;
+  document.body.appendChild(ifr);
+  var d = ifr.contentWindow.document; d.open(); d.write(html); d.close();
+  setTimeout(function(){
+    try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }
+    catch(e){
+      var w = window.open(&quot;&quot;, &quot;_blank&quot;);
+      if(w){ w.document.open(); w.document.write(html); w.document.close(); setTimeout(function(){ w.print(); }, 400); }
+    }
+  }, 450);
 }
 mwTeachReset(null);
 /* ==================== END MORNING WORK ==================== */
